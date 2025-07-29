@@ -46,7 +46,8 @@ function Process-InfFile {
     Write-Host ""
     
     try {
-        $infContent = Get-Content -Path $InfFilePath -Encoding UTF8
+
+        $infContent = Get-Content -Path $InfFilePath -Encoding Unicode
         $contentModified = $false
         
         # First, check and replace ExtensionId GUID if needed
@@ -136,7 +137,7 @@ function Process-InfFile {
         
         # Write back to file if any modifications were made
         if ($contentModified) {
-            Set-Content -Path $InfFilePath -Value $infContent -Encoding UTF8
+            $infContent | Out-File -FilePath $InfFilePath -Encoding Unicode
             Write-ColorOutput "Successfully updated INF file" "Green"
         } else {
             Write-ColorOutput "No modifications needed" "Green"
