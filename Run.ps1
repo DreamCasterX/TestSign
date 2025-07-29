@@ -1,14 +1,20 @@
 
 $_creator = "Mike Lu"
 $_version = 1.0
-$_changedate = 7/29/2025
+$_changedate = "7/29/2025"
+
+
+# 當前只針對ADSP跟TREE driver進行特殊特定,可重複執行
+#   ADSP -> 修改ExtensionID並加入SSID
+#   TREE -> 僅修改ExtensionID
 
 
 
-# User defined settings
+# User defined settings 
 $PROJECT_ID = "8480"
-$SSID = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"
-$EXTENSION_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
+$EXT_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
+$EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
+$SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"
 
 
 # Fixed settings
@@ -32,11 +38,12 @@ function Write-ColorOutput {
 function Process-InfFile {
     param(
         [string]$InfFilePath,
-        [string]$TargetInfName
+        [string]$TargetInfName,
+        [string]$InfType
     )
     
     Write-ColorOutput "Found target INF file: $TargetInfName.inf" "Green"
-	Write-Host ""
+    Write-Host ""
     
     try {
         $infContent = Get-Content -Path $InfFilePath -Encoding UTF8
@@ -44,33 +51,49 @@ function Process-InfFile {
         
         # First, check and replace ExtensionId GUID if needed
         Write-ColorOutput "Checking for ExtensionId in INF file..." "Cyan"
-        for ($i = 0; $i -lt $infContent.Count; $i++) {
-            if ($infContent[$i] -match "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}") {
-                $originalLine = $infContent[$i]
-                # Replace any GUID in ExtensionId with the target GUID
-                $infContent[$i] = $infContent[$i] -replace "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}", "ExtensionId={$EXTENSION_ID_ADSP}"
-                
-                if ($originalLine -ne $infContent[$i]) {
-                    Write-ColorOutput "Updated ExtensionId from: $originalLine" "Yellow"
-                    Write-ColorOutput "Updated ExtensionId to: $($infContent[$i])" "Green"
-					Write-Host "`n"
-                    $contentModified = $true
-                } else {
-                    Write-ColorOutput "ExtensionId already has the correct GUID" "Green"
+        
+        # Determine which EXTENSION_ID to use based on inf type
+        $targetExtensionId = ""
+        if ($InfType -eq "ADSP") {
+            $targetExtensionId = $EXT_ID_ADSP
+        } elseif ($InfType -eq "TREE") {
+            $targetExtensionId = $EXT_ID_TREE
+        }
+        
+        if (-not [string]::IsNullOrEmpty($targetExtensionId)) {
+            for ($i = 0; $i -lt $infContent.Count; $i++) {
+                if ($infContent[$i] -match "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}") {
+                    $originalLine = $infContent[$i]
+                    # Replace any GUID in ExtensionId with the target GUID
+                    $infContent[$i] = $infContent[$i] -replace "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}", "ExtensionId={$targetExtensionId}"
+                    
+                    if ($originalLine -ne $infContent[$i]) {
+                        Write-ColorOutput "Updated ExtensionId from: $originalLine" "Yellow"
+                        Write-ColorOutput "Updated ExtensionId to: $($infContent[$i])" "Green"
+                        Write-Host "`n"
+                        $contentModified = $true
+                    } else {
+                        Write-ColorOutput "ExtensionId already has the correct GUID" "Green"
+						Write-Host ""
+                    }
+                    break
                 }
-                break
             }
         }
         
-        # Check if SSID is empty - skip SSID processing if so
-		
-        if ([string]::IsNullOrEmpty($SSID)) {
+        # Check if SSID is empty or if this is TREE type - skip SSID processing
+        if ($InfType -eq "TREE") {
+            Write-ColorOutput "Skipping SSID modification for non-ADSP driver..." "Cyan"
+        } elseif ([string]::IsNullOrEmpty($SSID_ADSP)) {
             Write-ColorOutput "SSID is empty - skipping SSID modification" "Yellow"
         } else {
+            # Only process SSID for ADSP type files
+            Write-ColorOutput "Processing SSID for ADSP driver..." "Cyan"
+            
             # Check if SSID already exists
             $ssidExists = $false
             foreach ($line in $infContent) {
-                if ($line.Contains($SSID)) {
+                if ($line.Contains($SSID_ADSP)) {
                     $ssidExists = $true
                     break
                 }
@@ -84,7 +107,6 @@ function Process-InfFile {
                 for ($i = $infContent.Count - 1; $i -ge 0; $i--) {
                     if ($infContent[$i] -match ".*%ADSP\.DeviceDesc%=SUBSYS_Device_ADSP_ext.*") {
                         $lastMatchIndex = $i
-                        Write-ColorOutput "Found matching line at index $i`: $($infContent[$i])" "Cyan"
                         break
                     }
                 }
@@ -95,7 +117,7 @@ function Process-InfFile {
                     for ($i = 0; $i -le $lastMatchIndex; $i++) {
                         $newContent += $infContent[$i]
                     }
-                    $newContent += $SSID
+                    $newContent += $SSID_ADSP
                     for ($i = $lastMatchIndex + 1; $i -lt $infContent.Count; $i++) {
                         $newContent += $infContent[$i]
                     }
@@ -151,11 +173,14 @@ function Create-CabFile {
         $CAB_NAME = "$INF_NAME.cab"
         $script:INF_NAME_FOUND = $true
         Write-ColorOutput "Found INF file: $($infFiles[0].Name)" "Green"
-		
+        
         # Check if this is the specific inf file we need to modify
-        $targetInfName = "qcsubsys_ext_adsp$PROJECT_ID"
-        if ($INF_NAME -eq $targetInfName) {
-            Process-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfName
+        $targetInfNameADSP = "qcsubsys_ext_adsp$PROJECT_ID"  # 鎖定ADSP名稱
+        $targetInfNameTREE = "QcTreeExtOem$PROJECT_ID"       # 鎖定Tree名稱
+        if ($INF_NAME -eq $targetInfNameADSP) {
+            Process-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameADSP -InfType "ADSP"
+        } elseif ($INF_NAME -eq $targetInfNameTREE) {
+            Process-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameTREE -InfType "TREE"
         }
     } else {
         Write-ColorOutput "Warning: No INF file found in src directory. Using default cab name 'No_INF.cab'" "Yellow"
@@ -174,8 +199,8 @@ function Create-CabFile {
         Write-ColorOutput "The Unsigned directory does not exist, creating it now..." "Yellow"
         New-Item -ItemType Directory -Path $UNSIGNED_DIR -Force | Out-Null
     }
-	
-	Write-Host ""
+    
+    Write-Host ""
     Write-ColorOutput "Packaging CAB files..." "Cyan"
 
     # Change to project directory and execute cabarc
