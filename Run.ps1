@@ -1,7 +1,7 @@
 
-$_creator = "Mike Lu"
+$_creator = "Mike Lu (lu.mike@inventec.com)"
 $_version = 1.0
-$_changedate = "7/29/2025"
+$_changedate = "9/10/2025"
 
 
 # 當前只針對ADSP跟TREE driver進行特殊特定,可重複執行
@@ -15,6 +15,7 @@ $PROJECT_ID = "8480"
 $EXT_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
 $EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
 $SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"
+$ENABLE_SIGNING = $false  # 設置為 $true啟用signing function (需外接USB sign key)
 
 
 # Fixed settings
@@ -305,6 +306,7 @@ function Sign-CabFiles {
     return $true
 }
 
+
 # Main execution flow
 try {
     # Try to create CAB file first
@@ -312,12 +314,18 @@ try {
     
     Write-Host "`n"
     
-    # Always attempt to sign CAB files (whether newly created or existing)
-    $signingSuccess = Sign-CabFiles
+    if ($ENABLE_SIGNING) {
+        # Always attempt to sign CAB files (whether newly created or existing)
+        $signingSuccess = Sign-CabFiles
+    } else {
+        $signingSuccess = $true
+    }
     
     Write-Host "`n"
     if ($signingSuccess) {
-        Write-ColorOutput "All cab files have been processed successfully." "Green"
+        if ($ENABLE_SIGNING) {
+            Write-ColorOutput "All cab files have been processed successfully." "Green"
+        }
     } else {
         Write-ColorOutput "Script completed with errors." "Red"
     }
