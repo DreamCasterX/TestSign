@@ -1,13 +1,15 @@
 
 $_creator = "Mike Lu (lu.mike@inventec.com)"
-$_version = 1.0
-$_changedate = "10/28/2025"
+$_version = 1.3
+$_changedate = "1/22/2026"
 
 
 # 此tool會針對ADSP/TREE/QCOM driver進行特殊特定,可重複執行
 #   ADSP -> 修改ExtensionID並加入SSID
 #   TREE -> 修改ExtensionID並加入SSID/OEM SECURE APP SERVICE/HpVariableService.RegKey
 #   QCOM -> 修改ExtensionID並加入SSID
+#   PEP  -> 修改ExtensionID
+#   GFX  -> 修改ExtensionID並加入SSID
 
 
 
@@ -16,11 +18,17 @@ $PROJECT_ID = "8480"
 $EXT_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
 $EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
 $EXT_ID_QCOM = "ee28e4a3-d04a-46a4-b493-3b82ad8f3411"
+$EXT_ID_PEP = "729dd6aa-55c3-4ac5-89c8-a77ae0ecfdd5"
+$EXT_ID_GFX = "d86d3850-b5c9-46d3-9df5-ff833f0516b0"
 $SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"
 $SSID_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91"  # for Cashmere
-$SSID_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91"
+$SSID_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91" 
+$SSID_GFX = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91"
+$SSID_GFX_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91"
 $SSID2_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8F2B"  # for Dolcelatte
 $SSID2_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8F2B"
+$SSID2_GFX = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B"
+$SSID2_GFX_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B"
 $ENABLE_SIGNING = $false  # 設置為 $true啟用signing function (需外接USB sign key)
 
 
@@ -68,14 +76,18 @@ function Update-InfFile {
             $targetExtensionId = $EXT_ID_TREE
         } elseif ($InfType -eq "QCOM") {
             $targetExtensionId = $EXT_ID_QCOM
+		} elseif ($InfType -eq "PEP") {
+            $targetExtensionId = $EXT_ID_PEP
+		} elseif ($InfType -eq "GFX") {
+            $targetExtensionId = $EXT_ID_GFX
         }
         
         if (-not [string]::IsNullOrEmpty($targetExtensionId)) {
             for ($i = 0; $i -lt $infContent.Count; $i++) {
-                if ($infContent[$i] -match "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}") {
+                if ($infContent[$i] -match "ExtensionId\s*=\s*\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}") {
                     $originalLine = $infContent[$i]
-                    # Replace any GUID in ExtensionId with the target GUID
-                    $infContent[$i] = $infContent[$i] -replace "ExtensionId=\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}", "ExtensionId={$targetExtensionId}"
+                    # Replace any GUID in ExtensionId with the target GUID (preserve spacing around =)
+                    $infContent[$i] = $infContent[$i] -replace "\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}", "{$targetExtensionId}"
                     
                     if ($originalLine -ne $infContent[$i]) {
                         Write-ColorOutput "Updated ExtensionId from: $originalLine" "Yellow"
@@ -103,6 +115,9 @@ function Update-InfFile {
         } elseif ($InfType -eq "QCOM") {
             $ssidToUse = $SSID_QCOM
             $ssidAnchorRegex = ".*%QcTrEE\.DeviceDesc%=QcTrEE_Qcom_ext.*"
+        } elseif ($InfType -eq "GFX") {
+            $ssidToUse = $SSID_GFX
+            $ssidAnchorRegex = ".*%QC_Device.*%.*=.*QCDX_Inst_Ext.*SUBSYS_CRD.*"
         }
         
         # TREE-specific additions: OEM SECURE APP SERVICE and HpVariableService.RegKey
@@ -251,16 +266,42 @@ function Update-InfFile {
 			Write-Host ""
             Write-ColorOutput "Processing SSID for $InfType driver..." "Cyan"
             
-            # Check if SSID already exists
-            $ssidExists = $false
-            foreach ($line in $infContent) {
-                if ($line.Contains($ssidToUse)) {
-                    $ssidExists = $true
-                    break
+            # For GFX type, check all 4 SSIDs; for others, check the primary SSID
+            $needToAddSSID = $false
+            if ($InfType -eq "GFX") {
+                # Check all 4 SSIDs for GFX
+                $ssidGfxExists = $false
+                $ssidGfx2Exists = $false
+                $ssid2GfxExists = $false
+                $ssid2Gfx2Exists = $false
+                foreach ($line in $infContent) {
+                    if ($line.Contains($SSID_GFX)) {
+                        $ssidGfxExists = $true
+                    }
+                    if ($line.Contains($SSID_GFX_2)) {
+                        $ssidGfx2Exists = $true
+                    }
+                    if ($line.Contains($SSID2_GFX)) {
+                        $ssid2GfxExists = $true
+                    }
+                    if ($line.Contains($SSID2_GFX_2)) {
+                        $ssid2Gfx2Exists = $true
+                    }
                 }
+                $needToAddSSID = -not ($ssidGfxExists -and $ssidGfx2Exists -and $ssid2GfxExists -and $ssid2Gfx2Exists)
+            } else {
+                # Check primary SSID for other types
+                $ssidExists = $false
+                foreach ($line in $infContent) {
+                    if ($line.Contains($ssidToUse)) {
+                        $ssidExists = $true
+                        break
+                    }
+                }
+                $needToAddSSID = -not $ssidExists
             }
         
-            if (-not $ssidExists) {
+            if ($needToAddSSID) {
                 Write-ColorOutput "SSID not found in INF file. Adding it..." "Yellow"
                 
                 # Find the last occurrence of the anchor line
@@ -274,49 +315,88 @@ function Update-InfFile {
                 
                 if ($lastMatchIndex -ne -1) {
                     # Prepare SSID lines to insert
-                    $ssidLinesToInsert = @($ssidToUse)
+                    $ssidLinesToInsert = @()
                     
-                    # Add second SSID for TREE and QCOM types
-                    if ($InfType -eq "TREE") {
-                        $ssid2Exists = $false
+                    if ($InfType -eq "GFX") {
+                        # GFX needs 4 SSID lines: SSID_GFX, SSID_GFX_2, SSID2_GFX, SSID2_GFX_2
+                        $ssidGfxExists = $false
+                        $ssidGfx2Exists = $false
+                        $ssid2GfxExists = $false
+                        $ssid2Gfx2Exists = $false
                         foreach ($line in $infContent) {
-                            if ($line.Contains($SSID2_TREE)) {
-                                $ssid2Exists = $true
-                                break
+                            if ($line.Contains($SSID_GFX)) {
+                                $ssidGfxExists = $true
+                            }
+                            if ($line.Contains($SSID_GFX_2)) {
+                                $ssidGfx2Exists = $true
+                            }
+                            if ($line.Contains($SSID2_GFX)) {
+                                $ssid2GfxExists = $true
+                            }
+                            if ($line.Contains($SSID2_GFX_2)) {
+                                $ssid2Gfx2Exists = $true
                             }
                         }
-                        if (-not $ssid2Exists) {
-                            $ssidLinesToInsert += $SSID2_TREE
+                        if (-not $ssidGfxExists) {
+                            $ssidLinesToInsert += $SSID_GFX
                         }
-                    } elseif ($InfType -eq "QCOM") {
-                        $ssid2Exists = $false
-                        foreach ($line in $infContent) {
-                            if ($line.Contains($SSID2_QCOM)) {
-                                $ssid2Exists = $true
-                                break
+                        if (-not $ssidGfx2Exists) {
+                            $ssidLinesToInsert += $SSID_GFX_2
+                        }
+                        if (-not $ssid2GfxExists) {
+                            $ssidLinesToInsert += $SSID2_GFX
+                        }
+                        if (-not $ssid2Gfx2Exists) {
+                            $ssidLinesToInsert += $SSID2_GFX_2
+                        }
+                    } else {
+                        # For other types, add primary SSID first
+                        $ssidLinesToInsert = @($ssidToUse)
+                        
+                        # Add second SSID for TREE and QCOM types
+                        if ($InfType -eq "TREE") {
+                            $ssid2Exists = $false
+                            foreach ($line in $infContent) {
+                                if ($line.Contains($SSID2_TREE)) {
+                                    $ssid2Exists = $true
+                                    break
+                                }
                             }
-                        }
-                        if (-not $ssid2Exists) {
-                            $ssidLinesToInsert += $SSID2_QCOM
+                            if (-not $ssid2Exists) {
+                                $ssidLinesToInsert += $SSID2_TREE
+                            }
+                        } elseif ($InfType -eq "QCOM") {
+                            $ssid2Exists = $false
+                            foreach ($line in $infContent) {
+                                if ($line.Contains($SSID2_QCOM)) {
+                                    $ssid2Exists = $true
+                                    break
+                                }
+                            }
+                            if (-not $ssid2Exists) {
+                                $ssidLinesToInsert += $SSID2_QCOM
+                            }
                         }
                     }
                     
                     # Insert the SSID lines after the last match
-                    $newContent = @()
-                    for ($i = 0; $i -le $lastMatchIndex; $i++) {
-                        $newContent += $infContent[$i]
+                    if ($ssidLinesToInsert.Count -gt 0) {
+                        $newContent = @()
+                        for ($i = 0; $i -le $lastMatchIndex; $i++) {
+                            $newContent += $infContent[$i]
+                        }
+                        foreach ($ssidLine in $ssidLinesToInsert) {
+                            $newContent += $ssidLine
+                        }
+                        for ($i = $lastMatchIndex + 1; $i -lt $infContent.Count; $i++) {
+                            $newContent += $infContent[$i]
+                        }
+                        
+                        # Update the content array
+                        $infContent = $newContent
+                        Write-ColorOutput "Successfully added SSID(s) to INF file content" "Green"
+                        $contentModified = $true
                     }
-                    foreach ($ssidLine in $ssidLinesToInsert) {
-                        $newContent += $ssidLine
-                    }
-                    for ($i = $lastMatchIndex + 1; $i -lt $infContent.Count; $i++) {
-                        $newContent += $infContent[$i]
-                    }
-                    
-                    # Update the content array
-                    $infContent = $newContent
-                    Write-ColorOutput "Successfully added SSID(s) to INF file content" "Green"
-                    $contentModified = $true
                 } else {
                     Write-ColorOutput "Warning: Could not find anchor line for $InfType in .inf file" "Yellow"
                 }
@@ -369,12 +449,18 @@ function New-CabFile {
         $targetInfNameADSP = "qcsubsys_ext_adsp$PROJECT_ID"  # 鎖定ADSP名稱
         $targetInfNameTREE = "QcTreeExtOem$PROJECT_ID"       # 鎖定Tree名稱
         $targetInfNameQCOM = "QcTreeExtQcom$PROJECT_ID"      # 鎖定QCOM名稱
+		$targetInfNamePEP = "qcpep.wd_ext$PROJECT_ID"        # 鎖定PEP名稱
+        $targetInfNameGFX = "qcdxext_crd$PROJECT_ID"         # 鎖定GFX名稱
         if ($INF_NAME -eq $targetInfNameADSP) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameADSP -InfType "ADSP"
         } elseif ($INF_NAME -eq $targetInfNameTREE) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameTREE -InfType "TREE"
         } elseif ($INF_NAME -eq $targetInfNameQCOM) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameQCOM -InfType "QCOM"
+		} elseif ($INF_NAME -eq $targetInfNamePEP) {
+            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNamePEP -InfType "PEP"
+		} elseif ($INF_NAME -eq $targetInfNameGFX) {
+            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX -InfType "GFX"
         }
     } else {
         Write-ColorOutput "Warning: No INF file found in src directory. Using default cab name 'No_INF.cab'" "Yellow"
@@ -466,7 +552,8 @@ function Set-CabSignature {
                 
                 if (Test-Path $SIGNED_CAB_PATH) {
                     # Sign the file
-                    $signtoolArgs = @("sign", "/a", "/fd", "sha256", "/n", "Inventec Corporation", "/t", "http://timestamp.comodoca.com/authenticode", $SIGNED_CAB_PATH)
+                    # Build argument string to properly handle spaces in parameters
+                    $signtoolArgs = "sign /a /fd sha256 /n `"Inventec Corporation`" /t http://timestamp.comodoca.com/authenticode `"$SIGNED_CAB_PATH`""
                     $signProcess = Start-Process -FilePath $SIGNTOOL_PATH -ArgumentList $signtoolArgs -Wait -PassThru -NoNewWindow
                     
                     if ($signProcess.ExitCode -ne 0) {
@@ -481,6 +568,14 @@ function Set-CabSignature {
                         return $false
                     } else {
                         Write-ColorOutput "Successfully signed: $SIGNED_CAB_NAME" "Green"
+                        
+                        # Delete the original unsigned file if signing is enabled
+                        if ($ENABLE_SIGNING) {
+                            if (Test-Path $UNSIGNED_CAB_PATH) {
+                                Remove-Item -Path $UNSIGNED_CAB_PATH -Force
+                                Write-ColorOutput "Removed original unsigned file: $UNSIGNED_CAB_NAME.cab" "DarkGray"
+                            }
+                        }
                     }
                 } else {
                     Write-ColorOutput "Error: Failed to create a copy for signing." "Red"
