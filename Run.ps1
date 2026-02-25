@@ -1,36 +1,124 @@
 
 $_creator = "Mike Lu (lu.mike@inventec.com)"
-$_version = 1.3
-$_changedate = "1/22/2026"
+$_version = 1.4
+$_changedate = "2/25/2026"
 
 
 # 此tool會針對ADSP/TREE/QCOM driver進行特殊特定,可重複執行
 #   ADSP -> 修改ExtensionID並加入SSID
 #   TREE -> 修改ExtensionID並加入SSID/OEM SECURE APP SERVICE/HpVariableService.RegKey
 #   QCOM -> 修改ExtensionID並加入SSID
-#   PEP  -> 修改ExtensionID
-#   GFX  -> 修改ExtensionID並加入SSID
+#   PEP -> 修改ExtensionID
+#   GFX_EXT -> 修改ExtensionID並加入SSID
+#   GFX_BASE -> 僅加入SSID
 
 
 
 # User defined settings 
 $PROJECT_ID = "8480"
+$ENABLE_SIGNING = $false  # 設置為 $true啟用signing function (需外接USB sign key)
 $EXT_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
 $EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
 $EXT_ID_QCOM = "ee28e4a3-d04a-46a4-b493-3b82ad8f3411"
 $EXT_ID_PEP = "729dd6aa-55c3-4ac5-89c8-a77ae0ecfdd5"
-$EXT_ID_GFX = "d86d3850-b5c9-46d3-9df5-ff833f0516b0"
+$EXT_ID_GFX_EXT = "d86d3850-b5c9-46d3-9df5-ff833f0516b0"
 $SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"
 $SSID_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91"  # for Cashmere
 $SSID_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91" 
-$SSID_GFX = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91"
-$SSID_GFX_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91"
+$SSID_GFX_EXT = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91"
+$SSID_GFX_EXT_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91"
+$SSID_GFX_BASE =
+"
+; HP EliteBook X G2q
+%QC_Device_4%        = QCDX_Inst_Base_185_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91
+
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0002
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0006
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0027
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0005
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A7
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A8
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0001
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A0
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A1
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A2
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00C1
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00C2
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00C4
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00C5
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00AA
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00AB
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A3
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A4
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_00A5
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0087
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0088
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91&REV_0089
+
+
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0096
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0033
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004B
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0098
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_009C
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_009D
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0095
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004A
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004C
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004D
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004F
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0051
+
+"
 $SSID2_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8F2B"  # for Dolcelatte
 $SSID2_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8F2B"
-$SSID2_GFX = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B"
-$SSID2_GFX_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B"
-$ENABLE_SIGNING = $false  # 設置為 $true啟用signing function (需外接USB sign key)
+$SSID2_GFX_EXT = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B"
+$SSID2_GFX_EXT_2 = "%QC_Device84%        = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B"
+$SSID2_GFX_BASE =
+"
+; HP EliteBook 6 G2q
+%QC_Device_4%        = QCDX_Inst_Base_185_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B
 
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0002
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0006
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0027
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0005
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A7
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A8
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0001
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A0
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A1
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A2
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00C1
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00C2
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00C4
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00C5
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00AA
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00AB
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A3
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A4
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_00A5
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0087
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0088
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8F2B&REV_0089
+
+
+%QC_Device_3%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0096
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0033
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004B
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_091, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0098
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_009C
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_009D
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0095
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004A
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004C
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004D
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004F
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0051
+
+"
 
 # Fixed settings
 $PROJECT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -65,7 +153,7 @@ function Update-InfFile {
         $infContent = Get-Content -Path $InfFilePath -Encoding Unicode
         $contentModified = $false
         
-        # First, check and replace ExtensionId GUID if needed
+        # First, check and replace ExtensionId GUID if needed (not used for GFX_BASE)
         Write-ColorOutput "Checking for ExtensionId in INF file..." "Cyan"
         
         # Determine which EXTENSION_ID to use based on inf type
@@ -76,10 +164,10 @@ function Update-InfFile {
             $targetExtensionId = $EXT_ID_TREE
         } elseif ($InfType -eq "QCOM") {
             $targetExtensionId = $EXT_ID_QCOM
-		} elseif ($InfType -eq "PEP") {
+        } elseif ($InfType -eq "PEP") {
             $targetExtensionId = $EXT_ID_PEP
-		} elseif ($InfType -eq "GFX") {
-            $targetExtensionId = $EXT_ID_GFX
+        } elseif ($InfType -eq "GFX_EXT") {
+            $targetExtensionId = $EXT_ID_GFX_EXT
         }
         
         if (-not [string]::IsNullOrEmpty($targetExtensionId)) {
@@ -92,18 +180,138 @@ function Update-InfFile {
                     if ($originalLine -ne $infContent[$i]) {
                         Write-ColorOutput "Updated ExtensionId from: $originalLine" "Yellow"
                         Write-ColorOutput "Updated ExtensionId to: $($infContent[$i])" "Green"
-						Write-Host ""
+                        Write-Host ""
                         $contentModified = $true
                     } else {
                         Write-ColorOutput "ExtensionId already has the correct GUID" "DarkGray"
-						Write-Host ""
+                        Write-Host ""
                     }
                     break
                 }
             }
         }
         
-        # SSID handling for all supported types
+        # Special SSID handling for GFX_BASE (base GFX INF only adds SSID)
+        if ($InfType -eq "GFX_BASE") {
+            Write-Host ""
+            Write-ColorOutput "Processing SSID for GFX_BASE driver..." "Cyan"
+
+            # Split configured multi-line SSID blocks into individual lines
+            # Preserve「內部」空白行，但去掉 Here-String 開頭與結尾多出來的空行
+            $ssidBaseLines = $SSID_GFX_BASE -split "`r?`n"
+            if ($ssidBaseLines.Count -gt 0 -and $ssidBaseLines[0] -eq "") {
+                if ($ssidBaseLines.Count -gt 1) {
+                    $ssidBaseLines = $ssidBaseLines[1..($ssidBaseLines.Count - 1)]
+                } else {
+                    $ssidBaseLines = @()
+                }
+            }
+            if ($ssidBaseLines.Count -gt 0 -and $ssidBaseLines[-1] -eq "") {
+                if ($ssidBaseLines.Count -gt 1) {
+                    $ssidBaseLines = $ssidBaseLines[0..($ssidBaseLines.Count - 2)]
+                } else {
+                    $ssidBaseLines = @()
+                }
+            }
+
+            $ssid2BaseLines = $SSID2_GFX_BASE -split "`r?`n"
+            if ($ssid2BaseLines.Count -gt 0 -and $ssid2BaseLines[0] -eq "") {
+                if ($ssid2BaseLines.Count -gt 1) {
+                    $ssid2BaseLines = $ssid2BaseLines[1..($ssid2BaseLines.Count - 1)]
+                } else {
+                    $ssid2BaseLines = @()
+                }
+            }
+            if ($ssid2BaseLines.Count -gt 0 -and $ssid2BaseLines[-1] -eq "") {
+                if ($ssid2BaseLines.Count -gt 1) {
+                    $ssid2BaseLines = $ssid2BaseLines[0..($ssid2BaseLines.Count - 2)]
+                } else {
+                    $ssid2BaseLines = @()
+                }
+            }
+
+            # Rough existence checks based on SUBSYS IDs for the two platforms
+            $baseExists = $false
+            foreach ($line in $infContent) {
+                if ($line.Contains("SUBSYS_103C8E91")) {
+                    $baseExists = $true
+                    break
+                }
+            }
+            $base2Exists = $false
+            foreach ($line in $infContent) {
+                if ($line.Contains("SUBSYS_103C8F2B")) {
+                    $base2Exists = $true
+                    break
+                }
+            }
+
+            if ($baseExists -and $base2Exists) {
+                Write-ColorOutput "GFX_BASE SSIDs already exist in .inf file" "DarkGray"
+            } else {
+                # Find the [QC.NTARM64.10.0...16299] section and insert after its content
+                $anchorIndex = -1
+                $inQcSection = $false
+                for ($i = 0; $i -lt $infContent.Count; $i++) {
+                    if ($infContent[$i] -match "^\[QC\.NTARM64\.10\.0\.\.\.16299\]") {
+                        $inQcSection = $true
+                        continue
+                    }
+                    if ($inQcSection) {
+                        if ($infContent[$i] -match "^\[") {
+                            $anchorIndex = $i - 1
+                            break
+                        }
+                    }
+                }
+                if ($inQcSection -and $anchorIndex -eq -1) {
+                    $anchorIndex = $infContent.Count - 1
+                }
+
+                if ($anchorIndex -eq -1) {
+                    Write-ColorOutput "Warning: Could not find [QC.NTARM64.10.0...16299] section in GFX_BASE .inf" "Yellow"
+                } else {
+                    $ssidLinesToInsert = @()
+                    if (-not $baseExists -and $ssidBaseLines.Count -gt 0) {
+                        $ssidLinesToInsert += $ssidBaseLines
+                    }
+                    if (-not $base2Exists -and $ssid2BaseLines.Count -gt 0) {
+                        $ssidLinesToInsert += $ssid2BaseLines
+                    }
+
+                    if ($ssidLinesToInsert.Count -gt 0) {
+                        $newContent = @()
+                        for ($i = 0; $i -le $anchorIndex; $i++) {
+                            $newContent += $infContent[$i]
+                        }
+                        foreach ($ssidLine in $ssidLinesToInsert) {
+                            $newContent += $ssidLine
+                        }
+                        for ($i = $anchorIndex + 1; $i -lt $infContent.Count; $i++) {
+                            $newContent += $infContent[$i]
+                        }
+
+                        $infContent = $newContent
+                        $contentModified = $true
+                        Write-ColorOutput "Successfully added GFX base driver SSID block(s) to INF file" "Green"
+                    } else {
+                        Write-ColorOutput "No new GFX_BASE SSID lines needed" "DarkGray"
+                    }
+                }
+            }
+
+            # Write back to file if any modifications were made, then return
+            if ($contentModified) {
+                $infContent | Out-File -FilePath $InfFilePath -Encoding Unicode
+                Write-ColorOutput "Successfully updated INF file" "Green"
+            } else {
+                Write-ColorOutput "No modifications needed" "DarkGray"
+            }
+
+            return
+        }
+        
+        # SSID handling for all supported types (except GFX_BASE)
         $ssidToUse = ""
         $ssidAnchorRegex = ""
         if ($InfType -eq "ADSP") {
@@ -115,8 +323,8 @@ function Update-InfFile {
         } elseif ($InfType -eq "QCOM") {
             $ssidToUse = $SSID_QCOM
             $ssidAnchorRegex = ".*%QcTrEE\.DeviceDesc%=QcTrEE_Qcom_ext.*"
-        } elseif ($InfType -eq "GFX") {
-            $ssidToUse = $SSID_GFX
+        } elseif ($InfType -eq "GFX_EXT") {
+            $ssidToUse = $SSID_GFX_EXT
             $ssidAnchorRegex = ".*%QC_Device.*%.*=.*QCDX_Inst_Ext.*SUBSYS_CRD.*"
         }
         
@@ -268,23 +476,23 @@ function Update-InfFile {
             
             # For GFX type, check all 4 SSIDs; for others, check the primary SSID
             $needToAddSSID = $false
-            if ($InfType -eq "GFX") {
+            if ($InfType -eq "GFX_EXT") {
                 # Check all 4 SSIDs for GFX
                 $ssidGfxExists = $false
                 $ssidGfx2Exists = $false
                 $ssid2GfxExists = $false
                 $ssid2Gfx2Exists = $false
                 foreach ($line in $infContent) {
-                    if ($line.Contains($SSID_GFX)) {
+                    if ($line.Contains($SSID_GFX_EXT)) {
                         $ssidGfxExists = $true
                     }
-                    if ($line.Contains($SSID_GFX_2)) {
+                    if ($line.Contains($SSID_GFX_EXT_2)) {
                         $ssidGfx2Exists = $true
                     }
-                    if ($line.Contains($SSID2_GFX)) {
+                    if ($line.Contains($SSID2_GFX_EXT)) {
                         $ssid2GfxExists = $true
                     }
-                    if ($line.Contains($SSID2_GFX_2)) {
+                    if ($line.Contains($SSID2_GFX_EXT_2)) {
                         $ssid2Gfx2Exists = $true
                     }
                 }
@@ -317,37 +525,37 @@ function Update-InfFile {
                     # Prepare SSID lines to insert
                     $ssidLinesToInsert = @()
                     
-                    if ($InfType -eq "GFX") {
+                    if ($InfType -eq "GFX_EXT") {
                         # GFX needs 4 SSID lines: SSID_GFX, SSID_GFX_2, SSID2_GFX, SSID2_GFX_2
                         $ssidGfxExists = $false
                         $ssidGfx2Exists = $false
                         $ssid2GfxExists = $false
                         $ssid2Gfx2Exists = $false
                         foreach ($line in $infContent) {
-                            if ($line.Contains($SSID_GFX)) {
+                            if ($line.Contains($SSID_GFX_EXT)) {
                                 $ssidGfxExists = $true
                             }
-                            if ($line.Contains($SSID_GFX_2)) {
+                            if ($line.Contains($SSID_GFX_EXT_2)) {
                                 $ssidGfx2Exists = $true
                             }
-                            if ($line.Contains($SSID2_GFX)) {
+                            if ($line.Contains($SSID2_GFX_EXT)) {
                                 $ssid2GfxExists = $true
                             }
-                            if ($line.Contains($SSID2_GFX_2)) {
+                            if ($line.Contains($SSID2_GFX_EXT_2)) {
                                 $ssid2Gfx2Exists = $true
                             }
                         }
                         if (-not $ssidGfxExists) {
-                            $ssidLinesToInsert += $SSID_GFX
+                            $ssidLinesToInsert += $SSID_GFX_EXT
                         }
                         if (-not $ssidGfx2Exists) {
-                            $ssidLinesToInsert += $SSID_GFX_2
+                            $ssidLinesToInsert += $SSID_GFX_EXT_2
                         }
                         if (-not $ssid2GfxExists) {
-                            $ssidLinesToInsert += $SSID2_GFX
+                            $ssidLinesToInsert += $SSID2_GFX_EXT
                         }
                         if (-not $ssid2Gfx2Exists) {
-                            $ssidLinesToInsert += $SSID2_GFX_2
+                            $ssidLinesToInsert += $SSID2_GFX_EXT_2
                         }
                     } else {
                         # For other types, add primary SSID first
@@ -450,7 +658,8 @@ function New-CabFile {
         $targetInfNameTREE = "QcTreeExtOem$PROJECT_ID"       # 鎖定Tree名稱
         $targetInfNameQCOM = "QcTreeExtQcom$PROJECT_ID"      # 鎖定QCOM名稱
 		$targetInfNamePEP = "qcpep.wd_ext$PROJECT_ID"        # 鎖定PEP名稱
-        $targetInfNameGFX = "qcdxext_crd$PROJECT_ID"         # 鎖定GFX名稱
+        $targetInfNameGFX_EXT = "qcdxext_crd$PROJECT_ID"     # 鎖定GFX_EXT名稱
+        $targetInfNameGFX_BASE = "qcdx$PROJECT_ID"           # 鎖定GFX_BASE名稱
         if ($INF_NAME -eq $targetInfNameADSP) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameADSP -InfType "ADSP"
         } elseif ($INF_NAME -eq $targetInfNameTREE) {
@@ -459,8 +668,10 @@ function New-CabFile {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameQCOM -InfType "QCOM"
 		} elseif ($INF_NAME -eq $targetInfNamePEP) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNamePEP -InfType "PEP"
-		} elseif ($INF_NAME -eq $targetInfNameGFX) {
-            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX -InfType "GFX"
+		} elseif ($INF_NAME -eq $targetInfNameGFX_EXT) {
+            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX_EXT -InfType "GFX_EXT"
+		} elseif ($INF_NAME -eq $targetInfNameGFX_BASE) {
+            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX_BASE -InfType "GFX_BASE"
         }
     } else {
         Write-ColorOutput "Warning: No INF file found in src directory. Using default cab name 'No_INF.cab'" "Yellow"
