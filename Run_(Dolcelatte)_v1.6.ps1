@@ -1,7 +1,7 @@
 
 $_creator = "Mike Lu (lu.mike@inventec.com)"
-$_version = 1.5
-$_changedate = "3/25/2026"
+$_version = 1.6
+$_changedate = "6/25/2026"
 
 
 # 此tool會針對ADSP/TREE/QCOM/GFX driver進行特殊特定,可重複執行
@@ -17,12 +17,12 @@ $_changedate = "3/25/2026"
 # User defined settings 
 $PROJECT_ID = "8480"
 $ENABLE_SIGNING = $false  # 設置為 $true啟用signing function (需外接USB sign key)
-$EXT_ID_ADSP = "671a02c8-b9d6-42e1-a135-298e452bd2aa"
+$EXT_ID_ADSP = "5d273442-0c6c-442c-b65b-4188a568c5d2"
 $EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
 $EXT_ID_QCOM = "ee28e4a3-d04a-46a4-b493-3b82ad8f3411"
 $EXT_ID_PEP = "729dd6aa-55c3-4ac5-89c8-a77ae0ecfdd5"
 $EXT_ID_GFX_EXT = "d86d3850-b5c9-46d3-9df5-ff833f0516b0"
-$SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"  # Unique to Cashmere
+$SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8F2B" # Unique to Dolcelatte
 $SSID_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91"  # [Cashmere]
 $SSID_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91" 
 $SSID_GFX_EXT = "%QC_Device%          = QCDX_Inst_Ext_8480, ACPI\VEN_QCOM&DEV_0F36&SUBSYS_103C8E91"
@@ -73,6 +73,8 @@ $SSID_GFX_BASE =
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004D
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_004F
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_0051
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_003B
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8E91&REV_003C
 
 "
 $SSID2_GFX_BASE =
@@ -117,6 +119,8 @@ $SSID2_GFX_BASE =
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004D
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_004F
 %QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_0051
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_185, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_003B
+%QC_Device_2%        = QCDX_Inst_Base_8480_ma_096, ACPI\VEN_QCOM&DEV_0FF5&SUBSYS_103C8F2B&REV_003C
 
 "
 
