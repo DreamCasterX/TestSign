@@ -1,16 +1,17 @@
 
 $_creator = "Mike Lu (lu.mike@inventec.com)"
-$_version = 1.6
-$_changedate = "6/25/2026"
+$_version = 1.7
+$_changedate = "8/20/2026"
 
 
 # 此tool會針對ADSP/TREE/QCOM/GFX driver進行特殊特定,可重複執行
 #   ADSP -> 修改ExtensionID並加入SSID
-#   TREE -> 修改ExtensionID並加入SSID/OEM SECURE APP SERVICE/HpVariableService.RegKey
+#   TREE -> 修改ExtensionID並加入SSID以及OEM SECURE APP SERVICE/HpVariableService.RegKey
 #   QCOM -> 修改ExtensionID並加入SSID
 #   PEP -> 修改ExtensionID
 #   GFX_EXT -> 修改ExtensionID並加入SSID
 #   GFX_BASE -> 僅加入SSID
+#   PPTE -> 修改ExtensionID並加入External scenario definitions
 
 
 
@@ -22,6 +23,13 @@ $EXT_ID_TREE = "83b2ef3f-4b29-4fbd-8a8b-221d38bab8d4"
 $EXT_ID_QCOM = "ee28e4a3-d04a-46a4-b493-3b82ad8f3411"
 $EXT_ID_PEP = "729dd6aa-55c3-4ac5-89c8-a77ae0ecfdd5"
 $EXT_ID_GFX_EXT = "d86d3850-b5c9-46d3-9df5-ff833f0516b0"
+$EXT_ID_PPTE = "bf57ec7f-d04a-450e-affd-af1ba00e511e"
+$PPTE_EXTERNAL_SCENARIO = @(
+    'HKR, Parameters\ExternalScenarios\C4CAA97C-795D-4951-BB5B-DEEC33EB55AD, name, 0x0000002, "low_power"',
+    'HKR, Parameters\ExternalScenarios\C4CAA97C-795D-4951-BB5B-DEEC33EB55AD, powermodes, 0x00010001, 0x00000017',
+    'HKR, Parameters\ExternalScenarios\C4CAA97C-795D-4951-BB5B-DEEC33EB55AD, priority, 0x00010001, 0x0000000f',
+    'HKR, Parameters\ExternalScenarios\C4CAA97C-795D-4951-BB5B-DEEC33EB55AD, inclusive, 0x00010001, 0x00000001'
+)
 $SSID_ADSP = "%ADSP.DeviceDesc%=SUBSYS_Device_ADSP_ext, ACPI\VEN_QCOM&DEV_0F1B&SUBSYS_103C8E91"  # Unique to Cashmere
 $SSID_TREE = "%QcTrEE.DeviceDesc%=QcTrEE_Oem_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91"  # [Cashmere]
 $SSID_QCOM = "%QcTrEE.DeviceDesc%=QcTrEE_Qcom_ext, ACPI\VEN_QCOM&DEV_103E&SUBSYS_103C8E91" 
@@ -171,6 +179,8 @@ function Update-InfFile {
             $targetExtensionId = $EXT_ID_PEP
         } elseif ($InfType -eq "GFX_EXT") {
             $targetExtensionId = $EXT_ID_GFX_EXT
+        } elseif ($InfType -eq "PPTE") {
+            $targetExtensionId = $EXT_ID_PPTE
         }
         
         if (-not [string]::IsNullOrEmpty($targetExtensionId)) {
@@ -470,9 +480,56 @@ function Update-InfFile {
                 Write-ColorOutput "HpVariableService.RegKey already exists" "DarkGray"
             }
         }
+
+        # PPTE-specific: add External scenario definitions (SSID is not used)
+        if ($InfType -eq "PPTE") {
+            Write-Host ""
+            Write-ColorOutput "Adding External scenario definitions..." "Cyan"
+
+            $ppteScenarioExists = $false
+            foreach ($line in $infContent) {
+                if ($line.Contains($PPTE_EXTERNAL_SCENARIO[0])) {
+                    $ppteScenarioExists = $true
+                    break
+                }
+            }
+
+            if (-not $ppteScenarioExists) {
+                $anchorIndex = -1
+                for ($i = 0; $i -lt $infContent.Count; $i++) {
+                    if ($infContent[$i] -match "^\s*;\s*External scenario definitions go here") {
+                        $anchorIndex = $i
+                        break
+                    }
+                }
+
+                if ($anchorIndex -eq -1) {
+                    Write-ColorOutput "Warning: Could not find '; External scenario definitions go here' in PPTE .inf" "Yellow"
+                } else {
+                    $newContent = @()
+                    for ($i = 0; $i -le $anchorIndex; $i++) {
+                        $newContent += $infContent[$i]
+                    }
+                    foreach ($scenarioLine in $PPTE_EXTERNAL_SCENARIO) {
+                        $newContent += $scenarioLine
+                    }
+                    for ($i = $anchorIndex + 1; $i -lt $infContent.Count; $i++) {
+                        $newContent += $infContent[$i]
+                    }
+
+                    $infContent = $newContent
+                    $contentModified = $true
+                    Write-ColorOutput "Successfully added External scenario definitions" "Green"
+                }
+            } else {
+                Write-ColorOutput "External scenario definitions already exist" "DarkGray"
+            }
+        }
         
         if ([string]::IsNullOrEmpty($ssidToUse)) {
-            Write-ColorOutput "SSID is empty - skipping SSID modification" "Yellow"
+            if ($InfType -ne "PPTE") {
+                Write-ColorOutput "SSID is empty - skipping SSID modification" "Yellow"
+            }
         } else {
 			Write-Host ""
             Write-ColorOutput "Processing SSID for $InfType driver..." "Cyan"
@@ -663,6 +720,8 @@ function New-CabFile {
 		$targetInfNamePEP = "qcpep.wd_ext$PROJECT_ID"        # 鎖定PEP名稱
         $targetInfNameGFX_EXT = "qcdxext_crd$PROJECT_ID"     # 鎖定GFX_EXT名稱
         $targetInfNameGFX_BASE = "qcdx$PROJECT_ID"           # 鎖定GFX_BASE名稱
+		$targetInfNamePPTE = "qcppte_extension$PROJECT_ID"   # 鎖定PPTE名稱
+		
         if ($INF_NAME -eq $targetInfNameADSP) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameADSP -InfType "ADSP"
         } elseif ($INF_NAME -eq $targetInfNameTREE) {
@@ -675,6 +734,8 @@ function New-CabFile {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX_EXT -InfType "GFX_EXT"
 		} elseif ($INF_NAME -eq $targetInfNameGFX_BASE) {
             Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNameGFX_BASE -InfType "GFX_BASE"
+		} elseif ($INF_NAME -eq $targetInfNamePPTE) {
+            Update-InfFile -InfFilePath $infFiles[0].FullName -TargetInfName $targetInfNamePPTE -InfType "PPTE"			
         }
     } else {
         Write-ColorOutput "Warning: No INF file found in src directory. Using default cab name 'No_INF.cab'" "Yellow"
